@@ -1,0 +1,8 @@
+knn.ipynb
+.venv
+__pycache__
+lr.ipynb
+penguins.csv
+forest_dataset.csv
+.idea
+main.py
