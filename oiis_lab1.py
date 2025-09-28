@@ -2,6 +2,7 @@ import numpy as np
 import cmath
 import matplotlib.pyplot as plt
 
+
 def FFT(P):
     n = len(P)  # n is a power of 2
 
@@ -24,52 +25,81 @@ def FFT(P):
     return y
 
 
+def generate_signal(function, frequency, num_points, duration):
+    """
+    Генерация сигнала
 
-
-def generate_signal(function, frequency, length):
-    t = np.linspace(0, 1, length, endpoint=False)
+    Parameters:
+    function: 'sin' или 'cos'
+    frequency: частота сигнала (Гц)
+    num_points: количество точек дискретизации
+    duration: длительность временной линии (секунды)
+    """
+    t = np.linspace(0, duration, num_points, endpoint=False)
     if function == 'sin':
-        signal = np.sin(2 * np.pi * frequency * t) # f(t) = A sin(2πft + φ), где φ = 0, A = 1
+        signal = np.sin(2 * np.pi * frequency * t)  # f(t) = A sin(2πft + φ), где φ = 0, A = 1
     elif function == 'cos':
-        signal = np.cos(2 * np.pi * frequency * t) # f(t) = A cos(2πft + φ), где φ = 0, A = 1
+        signal = np.cos(2 * np.pi * frequency * t)  # f(t) = A cos(2πft + φ), где φ = 0, A = 1
     else:
         raise ValueError("Выберите либо 'sin', либо 'cos'")
-    return signal
+    return t, signal
 
 
+# Ввод параметров
 function = input("Введите функцию (sin или cos): ")
-frequency = int(input("Введите частоту: "))
-length = 235
+frequency = int(input("Введите частоту (Гц): "))
+num_points = int(input("Введите количество точек: "))
+duration = float(input("Введите длительность временной линии (секунды): "))
 
-signal = generate_signal(function, frequency, length)
-next_pow_of_2 = 1 << (length - 1).bit_length()
-signal = list(signal)
-signal = signal + [0] * (next_pow_of_2 - length)
+# Генерация сигнала
+t, signal = generate_signal(function, frequency, num_points, duration)
+
+# Дополнение нулями до степени двойки
+next_pow_of_2 = 1 << (num_points - 1).bit_length()
+signal_padded = list(signal)
+signal_padded = signal_padded + [0] * (next_pow_of_2 - num_points)
 
 # Тестирование FFT и сравнение с NumPy FFT
-signal_after_FFT = FFT(signal)  # Используем исправленную функцию FFT
-signal_after_fft = np.fft.fft(signal)
+signal_after_FFT = FFT(signal_padded)  # Используем исправленную функцию FFT
+signal_after_fft = np.fft.fft(signal_padded)
+
+# Расчет частот для оси X спектра
+sampling_rate = 1024  # частота дискретизации
+freq_axis = np.fft.fftfreq(len(signal_padded), 1 / sampling_rate)
 
 # Построение графиков
-plt.figure(figsize=(10, 9))
+plt.figure(figsize=(12, 10))
 
+# Исходный сигнал
 plt.subplot(3, 1, 1)
-plt.plot(signal)
-plt.title("Исходный сигнал")
-plt.xlabel("Время")
+plt.plot(t, signal)
+plt.title(f"Исходный сигнал: {function}(2π*{frequency}*t)")
+plt.xlabel("Время (секунды)")
 plt.ylabel("Амплитуда")
+plt.grid(True)
 
+# Спектр (реализованный БПФ)
 plt.subplot(3, 1, 2)
-plt.plot(np.abs(signal_after_FFT))
+plt.plot(freq_axis[:len(freq_axis) // 2], np.abs(signal_after_FFT)[:len(signal_after_FFT) // 2])
 plt.title("Спектр сигнала (Реализованный БПФ)")
-plt.xlabel("Частота")
+plt.xlabel("Частота (Гц)")
 plt.ylabel("Амплитуда")
+plt.grid(True)
 
+# Спектр (NumPy БПФ)
 plt.subplot(3, 1, 3)
-plt.plot(np.abs(signal_after_fft))
+plt.plot(freq_axis[:len(freq_axis) // 2], np.abs(signal_after_fft)[:len(signal_after_fft) // 2])
 plt.title("Спектр сигнала (NumPy БПФ)")
-plt.xlabel("Частота")
+plt.xlabel("Частота (Гц)")
 plt.ylabel("Амплитуда")
+plt.grid(True)
 
 plt.tight_layout()
 plt.show()
+
+# Вывод информации о сигнале
+print(f"\nИнформация о сигнале:")
+print(f"Количество точек: {num_points}")
+print(f"Длительность: {duration} секунд")
+print(f"Частота дискретизации: {sampling_rate:.2f} Гц")
+print(f"Дополнено до {next_pow_of_2} точек (ближайшая степень двойки)")
