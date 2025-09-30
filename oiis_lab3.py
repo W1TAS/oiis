@@ -1,31 +1,49 @@
-from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
-img1 = Image.open('images/shrek.jpg')
-img2 = Image.open('images/night.jpg')
-
-img1_arr = np.array(img1, dtype=np.float32)
-img2_arr = np.array(img2, dtype=np.float32)
-
-img1_mean = np.mean(img1_arr)
-img2_mean = np.mean(img2_arr)
-
-target = (img1_mean + img2_mean) / 2
+img = Image.open('lab4_images/1.png')
+img_array = np.asarray(img)
 
 
-# Простой способ: перемещаем среднее значение к цели
-def adjust_brightness(image, current_mean, target_mean):
-    # Находим насколько нужно изменить среднее
-    mean_diff = target_mean - current_mean
+def histogram_equalization(image):
+    # Преобразуем в одномерный массив
+    flat = image.flatten()
 
-    # Применяем изменение ко всем пикселям
-    # Но с нелинейным эффектом: тёмные осветляем сильнее, светлые - слабее
-    adjusted = image + mean_diff * (1 - (image - 128) / 384)  # Нелинейная коррекция
-    return np.clip(adjusted, 0, 255)
+    # Создаем гистограмму
+    histogram = np.zeros(256)
+    for pixel in flat:
+        histogram[pixel] += 1
+
+    # Вычисляем кумулятивную функцию распределения (CDF)
+    cdf = histogram.cumsum()
+
+    # Нормализуем CDF к диапазону 0-255
+    cdf_normalized = (cdf - cdf.min()) * 255 / (cdf.max() - cdf.min())
+    cdf_normalized = cdf_normalized.astype(np.uint8)
+
+    # Применяем преобразование к изображению
+    equalized = cdf_normalized[flat]
+    equalized_image = np.reshape(equalized, image.shape)
+
+    return equalized_image
 
 
-new_img1_arr = adjust_brightness(img1_arr, img1_mean, target)
-new_img2_arr = adjust_brightness(img2_arr, img2_mean, target)
+# Применяем выравнивание гистограммы
+equalized_img = histogram_equalization(img_array)
 
-Image.fromarray(new_img1_arr.astype(np.uint8)).save('images/shrek_r2.jpg')
-Image.fromarray(new_img2_arr.astype(np.uint8)).save('images/night_r2.jpg')
+# Отображение результатов
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.imshow(img_array, cmap='gray')
+plt.title('Исходное изображение')
+plt.axis('off')
+
+plt.subplot(1, 2, 2)
+plt.imshow(equalized_img, cmap='gray')
+plt.title('После выравнивания гистограммы')
+plt.axis('off')
+
+plt.tight_layout()
+plt.show()
