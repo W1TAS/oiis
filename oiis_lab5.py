@@ -19,6 +19,6 @@ def create_stereoscopic_image(left_image_path, right_image_path, output_path):
 if __name__ == '__main__':
     left_image_path = "lab5_images/stereo_left.png"
     right_image_path = "lab5_images/stereo_right.png"
-    output_path = "lab5/stereoscopic_image.jpg"
+    output_path = "lab5_images/stereoscopic_image.jpg"
 
     create_stereoscopic_image(left_image_path, right_image_path, output_path)
