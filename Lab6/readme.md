@@ -1,4 +1,4 @@
-## Чтобы запустилось надо скачать
+## Чтобы запустилось надо скачать и добавить в папку Lab6
 
 coco.names https://www.kaggle.com/datasets/erennik/coconames
 
