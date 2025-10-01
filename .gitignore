@@ -6,3 +6,7 @@ penguins.csv
 forest_dataset.csv
 .idea
 main.py
+*.weights
+*.cfg
+*.names
+
